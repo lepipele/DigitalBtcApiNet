@@ -54,4 +54,5 @@ src/DigitalBtc.Api.Example/Global.DigitalBtcKey.cs
 
 #Project specific
 !src/.nuget/*.exe
-src/packages/
+src/packages/*
+!src/packages/ServiceStack.Text.3.9.71
