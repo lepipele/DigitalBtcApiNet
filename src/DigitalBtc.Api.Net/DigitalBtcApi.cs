@@ -57,14 +57,14 @@ namespace DigitalBtc.Api.Net
             //Encode the json version of the parameters above
             string convertedParam = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
 
-            //Encrypt the parameters with sha256 using the secret as the key
+            // Encrypt the parameters with sha256 using the secret as the key
             var encoding = new ASCIIEncoding();
             byte[] keyByte = encoding.GetBytes(_secret);
             var hmacsha256 = new HMACSHA256(keyByte);
             byte[] messageBytes = encoding.GetBytes(convertedParam);
             byte[] hashmessage = hmacsha256.ComputeHash(messageBytes);
 
-            //Create the signature, a hex output of the encrypted hash above
+            // Create the signature, a hex output of the encrypted hash above
             var stringBuilder = new StringBuilder();
             foreach (byte b in hashmessage)
             {
@@ -82,30 +82,24 @@ namespace DigitalBtc.Api.Net
             theRequest.Headers["X-DIGITALX-KEY"] = _key;
             theRequest.Headers["X-DIGITALX-PARAMS"] = convertedParam;
             theRequest.Headers["X-DIGITALX-SIGNATURE"] = signature;
-            Stream requestStream = theRequest.GetRequestStream();
+            using (Stream requestStream = theRequest.GetRequestStream())
+            {
+                requestStream.Write(Encoding.ASCII.GetBytes(json), 0, json.Length);
+                requestStream.Close();
 
-            requestStream.Write(Encoding.ASCII.GetBytes(json), 0, json.Length);
-            requestStream.Close();
+                using (var response = (HttpWebResponse) theRequest.GetResponse())
+                using (var responseStream = response.GetResponseStream())
+                // TODO: responseStream can be null
+                using (var myStreamReader = new StreamReader(responseStream, Encoding.Default))
+                {
+                    string pageContent = myStreamReader.ReadToEnd();
 
+                    var obj = JsonSerializer.DeserializeFromString<TResp>(pageContent);
+                    obj.JsonResponse = pageContent;
 
-            var response = (HttpWebResponse)theRequest.GetResponse();
-
-            Stream responseStream = response.GetResponseStream();
-
-            var myStreamReader = new StreamReader(responseStream, Encoding.Default);
-
-            string pageContent = myStreamReader.ReadToEnd();
-
-            myStreamReader.Close();
-            responseStream.Close();
-
-            response.Close();
-
-
-            var obj = JsonSerializer.DeserializeFromString<TResp>(pageContent);
-            obj.JsonResponse = pageContent;
-
-            return obj;
+                    return obj;
+                }
+            }
         }
     }
 }
