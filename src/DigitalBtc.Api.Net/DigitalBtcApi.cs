@@ -40,6 +40,9 @@ namespace DigitalBtc.Api.Net
         private readonly string _key;
         private readonly string _secret;
 
+        // TODO: Remove from library after testing
+        public static string DEBUG_SUFFIX;
+
         public DigitalBtcApi(string key, string secret)
         {
             JsConfig.ExcludeTypeInfo = true;
@@ -73,7 +76,7 @@ namespace DigitalBtc.Api.Net
             string signature = stringBuilder.ToString().ToLower();
 
 
-            String url = baseUrl + "/api/" + req.Method;
+            String url = baseUrl + "/api/" + req.Method + DEBUG_SUFFIX;
             WebRequest theRequest = WebRequest.Create(url);
             theRequest.Method = "POST";
 
