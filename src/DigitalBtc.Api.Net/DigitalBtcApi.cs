@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
@@ -24,7 +25,23 @@ namespace DigitalBtc.Api.Net
 
         public RespOrder Order(decimal price, decimal amount, string address = null)
         {
-            return ExecuteCall<RespOrder>(new ReqOrder {Price = price, Amount = amount, Address = address});
+            if (DEBUG_DUMMY_ORDERS)
+            {
+                var resp = new RespOrder
+                {
+                    Price = price,
+                    Amount = amount,
+                    TxId = "00000000-0000-0000-0000-000000000000",
+                    PayoutAddress = address,
+                    Message = "DEBUG_DUMMY_ORDER",
+                    Success = 1
+                };
+                return resp;
+            }
+            else
+            {
+                return ExecuteCall<RespOrder>(new ReqOrder { Price = price, Amount = amount, Address = address });
+            }
         }
 
         public RespInvoice Invoice()
@@ -33,15 +50,21 @@ namespace DigitalBtc.Api.Net
         }
     }
 
+    // flags
+    public partial class DigitalBtcApi
+    {
+        public static bool DEBUG_DUMMY_ORDERS;
+
+        // TODO: Remove from library after testing
+        public static string DEBUG_SUFFIX;
+    }
+
     // plumbing
     public partial class DigitalBtcApi
     {
         private const string baseUrl = "https://direct.digitalx.com";
         private readonly string _key;
         private readonly string _secret;
-
-        // TODO: Remove from library after testing
-        public static string DEBUG_SUFFIX;
 
         public DigitalBtcApi(string key, string secret)
         {
@@ -90,7 +113,7 @@ namespace DigitalBtc.Api.Net
                 requestStream.Write(Encoding.ASCII.GetBytes(json), 0, json.Length);
                 requestStream.Close();
 
-                using (var response = (HttpWebResponse) theRequest.GetResponse())
+                using (var response = (HttpWebResponse)theRequest.GetResponse())
                 using (var responseStream = response.GetResponseStream())
                 // TODO: responseStream can be null
                 using (var myStreamReader = new StreamReader(responseStream, Encoding.Default))
