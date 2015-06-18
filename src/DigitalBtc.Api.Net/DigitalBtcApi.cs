@@ -25,7 +25,7 @@ namespace DigitalBtc.Api.Net
 
         public RespOrder Order(decimal price, decimal amount, string address = null)
         {
-            if (DEBUG_DUMMY_ORDERS)
+            if (_debugDummyOrders)
             {
                 var resp = new RespOrder
                 {
@@ -53,25 +53,37 @@ namespace DigitalBtc.Api.Net
     // flags
     public partial class DigitalBtcApi
     {
-        public static bool DEBUG_DUMMY_ORDERS;
+        private readonly bool _debugDummyOrders;
 
         // TODO: Remove from library after testing
-        public static string DEBUG_SUFFIX;
+        private readonly string _debugSuffix;
     }
 
     // plumbing
     public partial class DigitalBtcApi
     {
+        private static DigitalBtcApi _instance = new DigitalBtcApi(
+            DigitalBtcSettings.Default.Key, DigitalBtcSettings.Default.Secret,
+            DigitalBtcSettings.Default.DebugDummyOrders, DigitalBtcSettings.Default.DebugSuffix);
+
+        public static DigitalBtcApi Instance
+        {
+            get { return _instance; }
+        }
+
         private const string baseUrl = "https://api.direct.digitalx.com/v0";
         private readonly string _key;
         private readonly string _secret;
 
-        public DigitalBtcApi(string key, string secret)
+        public DigitalBtcApi(string key, string secret, bool debugDummyOrders, string debugSuffix)
         {
             JsConfig.ExcludeTypeInfo = true;
 
             _key = key;
             _secret = secret;
+
+            _debugDummyOrders = debugDummyOrders;
+            _debugSuffix = debugSuffix;
         }
 
         private TResp ExecuteCall<TResp>(ReqBase req) where TResp : RespBase
@@ -99,7 +111,7 @@ namespace DigitalBtc.Api.Net
             string signature = stringBuilder.ToString().ToLower();
 
 
-            String url = baseUrl + "/" + req.Method + DEBUG_SUFFIX;
+            String url = baseUrl + "/" + req.Method + _debugSuffix;
             WebRequest theRequest = WebRequest.Create(url);
             theRequest.Method = "POST";
 
