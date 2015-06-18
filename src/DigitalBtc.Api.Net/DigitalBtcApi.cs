@@ -62,7 +62,7 @@ namespace DigitalBtc.Api.Net
     // plumbing
     public partial class DigitalBtcApi
     {
-        private const string baseUrl = "https://direct.digitalx.com";
+        private const string baseUrl = "https://api.direct.digitalx.com/v0";
         private readonly string _key;
         private readonly string _secret;
 
@@ -99,7 +99,7 @@ namespace DigitalBtc.Api.Net
             string signature = stringBuilder.ToString().ToLower();
 
 
-            String url = baseUrl + "/api/" + req.Method + DEBUG_SUFFIX;
+            String url = baseUrl + "/" + req.Method + DEBUG_SUFFIX;
             WebRequest theRequest = WebRequest.Create(url);
             theRequest.Method = "POST";
 
